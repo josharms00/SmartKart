@@ -1,9 +1,15 @@
-import autopy
+import tensorflow as tf
+import socket
 
-def take_screenshot():
-	capture = autopy.bitmap.capture_screen()
+server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+port = 120
+server.bind((socket.gethostname(), port))
+print("Hostname: %s Port: %d" % (socket.gethostname(), port))
+server.listen(1)
 
-	capture.save("cap0.png")
-
-
-take_screenshot()
+while True:
+	print("Listening for connection on port %d..." % (port,))
+	(clientsocket, address) = server.accept()
+	print("Received client at %s:%d" % (address, port))
+	buttons = clientsocket.recv(1)
+	print(buttons)
