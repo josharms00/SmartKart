@@ -16,4 +16,14 @@ function(data)
     luaclient.client:send(data)
 end
 
+luaclient.receive =
+function()
+    local data, error = luaclient.client:receive()
+    if error ~= nil then
+        print("Error when recieving frame: " .. error)
+    end
+
+    return data
+end
+
 return luaclient
