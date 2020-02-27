@@ -28,7 +28,7 @@ client.connect()
 while 1 do
 	output = input.get()
 
-	client.send('A')
+	client.send(buttons[1])
 
 	data = client.receive()
 
