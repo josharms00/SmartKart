@@ -2,7 +2,7 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 import socket
 
-st = "Hello world \n"
+st = "1 2 \n"
 
 # start server
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
