@@ -16,13 +16,15 @@ print("Listening for connection on port %d..." % (port,))
 (clientsocket, address) = server.accept()
 print("Received client at %s:%d" % (address, port))
 
-
 def determine_action():
 	while True:
 		try:
-			buttons = clientsocket.recv(20)
-			if buttons.decode() == "P1 A":
-				print("nice")
+			buttons = clientsocket.recv(240)
+			packet = buttons.decode()
+			data = packet.split(" ", 0)
+			print(data[0])
+
+
 			clientsocket.send(st.encode())
 		except KeyboardInterrupt:
 			print("Exception occurred. Closing connection.")
