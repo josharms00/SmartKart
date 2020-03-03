@@ -11,18 +11,18 @@ buttons = {
 	"P1 A Right",
 	"P1 A Up",
 	"P1 B",
-	"C Down",
-	"C Left",
-	"C Right",
-	"C Up",
-	"DPad D",
-	"DPad L",
-	"DPad R",
-	"DPad U",
-	"L",
-	"R",
-	"Start",
-	"Z"
+	"P1 C Down",
+	"P1 C Left",
+	"P1 C Right",
+	"P1 C Up",
+	"P1 DPad D",
+	"P1 DPad L",
+	"P1 DPad R",
+	"P1 DPad U",
+	"P1 L",
+	"P1 R",
+	"P1 Start",
+	"P1 Z"
 }
 
 kart = {}
@@ -75,8 +75,6 @@ end
 
 while 1 do
 	refresh_position()
-
-	output = input.get()
 
 	packet = create_packet()
 

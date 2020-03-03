@@ -2,6 +2,10 @@ import tensorflow as tf
 from tensorflow.keras.models import Sequential
 import socket
 
+
+def train():
+	print("training")
+
 st = "1 2 \n"
 
 # start server
@@ -22,8 +26,6 @@ def determine_action():
 			buttons = clientsocket.recv(240)
 			packet = buttons.decode()
 			data = packet.split(" ", 0)
-			print(data[0])
-
 
 			clientsocket.send(st.encode())
 		except KeyboardInterrupt:
@@ -37,7 +39,21 @@ def initialize_model(nhiddenlayers):
 	model = Sequential()
 
 def main():
-	determine_action()
+	parser.add_argument('-t', '--train',
+            action="store_true", dest="train",
+            help="train model")
+
+	parser.add_argument('-r', '--run',
+            action="store_true", dest="run",
+            help="run model in the emualtor")
+
+	args = parser.parse_args()
+
+	if args.run: 
+		determine_action()
+
+	elif args.train:
+		train()
 
 if __name__ == "__main__":
 	main()
