@@ -1,7 +1,44 @@
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
 import socket
+import numpy as np
+import pickle
 
+def prep_data():
+	file = open("lua/data.txt", "r")
+
+	data = []
+
+	train = []
+	labels = []
+
+	line = file.readline()
+	data.append(line)
+
+	while line:
+		if "|" in line:
+			line = file.readline()
+			sp = line.split("|")
+			data[i] += sp[0]
+			data.append(sp[1])
+
+			i += 1
+		else:
+			data[i] += line
+
+	for d in data:
+		butt = s.split("#b#")
+		X = np.array(butt[0].split("#"))
+		Y = butt[1].split("#")
+
+		train.append(X.astype(np.float))
+		lables.append(Y)
+
+	tp = open('training_data/train.pickle', 'wb')
+	pickle.dump(X, tp)
+
+	lp = open('training_data/labels.pickle', 'wb')
+	pickle.dump(Y, lp)
 
 def train():
 	print("training")
@@ -53,6 +90,7 @@ def main():
 		determine_action()
 
 	elif args.train:
+		prep_data()
 		train()
 
 if __name__ == "__main__":
