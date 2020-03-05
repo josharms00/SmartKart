@@ -16,39 +16,37 @@ def prep_data():
 	train = []
 	labels = []
 
-	line = file.readline()
-	data.append(line)
+	line = file.readline().strip("\n")
 
-	while line:
-		if "|" in line:
-			line = file.readline()
-			sp = line.split("|")
-			data[i] += sp[0]
-			if len(sp) > 1:
-				data.append(sp[1])
+	while line:		
+		data = line.split("#b#")
 
-			i += 1
-		else:
-			data[i] += line
+		if len(data) > 1:
+			if data[1] == '': 
+				line = file.readline().strip("\n")
+				continue
 
-	for d in data:
-		butt = d.split("#b#")
-		X = np.array(butt[0].split("#"))
-		Y = butt[1].split("#")
+			X = np.array(data[0].split("#"))
+			Y = data[1].split("#")
 
-		train.append(X.astype(np.float))
-		labels.append(Y)
+			train.append(X.astype(np.float))
+			labels.append(Y)
+
+		line = file.readline().strip("\n")
 
 	tp = open('training_data/train.pickle', 'wb')
-	pickle.dump(X, tp)
+	pickle.dump(train, tp)
 
 	lp = open('training_data/labels.pickle', 'wb')
-	pickle.dump(Y, lp)
+	pickle.dump(labels, lp)
 
 def train():
-	print("training")
+	train_data = pickle.load(open('training_data/train.pickle', 'br'))
 
-st = "1 2 \n"
+	train_labels = pickle.load(open('training_data/labels.pickle', 'br'))
+
+	print(train_data[0])
+	print(train_labels[0])
 
 def start_server():
 	# start server
@@ -92,6 +90,10 @@ def main():
             action="store_true", dest="run",
             help="run model in the emualtor")
 
+	parser.add_argument('-p', '--pickled',
+		action="store_true", dest="pickled",
+		help="data to train has already been preped and pickled")
+
 	args = parser.parse_args()
 
 	if args.run: 
@@ -99,7 +101,8 @@ def main():
 		determine_action()
 
 	elif args.train:
-		prep_data()
+		if not args.pickled:
+			prep_data()
 		train()
 
 if __name__ == "__main__":

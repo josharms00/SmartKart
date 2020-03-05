@@ -54,16 +54,16 @@ while 1 do
                 kart.y .. "#" ..
                 kart.yv .. "#" ..
                 kart.z .. "#" ..
-                kart.zv .. "#" .. "b#") 
+                kart.zv .. "#b") 
 
         for k, v in pairs(output) do
-            if k == "WMouse L" or k == "Start" then
+            if buttons[k] == nil then
                 break
             end
-            file:write(buttons[k] .. "#")
+            file:write("#" .. buttons[k])
         end
 
-        file:write("|")
+        file:write("\n")
     end
     
     emu.frameadvance()
