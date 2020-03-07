@@ -1,9 +1,11 @@
 import tensorflow as tf
 from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense, Dropout, LSTM
 import socket
 import numpy as np
 import pickle
 import argparse
+import time
 
 clientsocket = []
 
@@ -45,8 +47,18 @@ def train():
 
 	train_labels = pickle.load(open('training_data/labels.pickle', 'br'))
 
-	print(train_data[0])
-	print(train_labels[0])
+	model = initialize_model()
+
+	# data must be put into an numpy array
+    train_data = np.array(train_labels)
+	
+	# labels must be put into an numpy array
+    train_labels = np.array(train_labels)
+
+	model.fit(train_data, train_labels, epochs=1)
+
+	model.save()
+	
 
 def start_server():
 	# start server
@@ -76,8 +88,19 @@ def determine_action():
 			clientsocket.close()
 			break
 
-def initialize_model(nhiddenlayers):
+def initialize_model():
 	model = Sequential()
+
+	model.add(LSTM(10, input_shape=(6,), return_sequences=True))
+
+	model.add(LSTM(20))
+	model.add(LSTM(20))
+
+	model.add(Dense(17, activation="sigmoid"))
+
+	model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+
+	return model
 
 def main():
 	parser = argparse.ArgumentParser()

@@ -21,7 +21,6 @@ buttons = {
 	"P1 DPad U",
 	"P1 L",
 	"P1 R",
-	"P1 Start",
 	"P1 Z"
 }
 
