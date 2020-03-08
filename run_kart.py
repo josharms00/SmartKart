@@ -6,8 +6,57 @@ import numpy as np
 import pickle
 import argparse
 import time
+mnist = tf.keras.datasets.mnist
 
 clientsocket = []
+
+buttons = [
+	"P1 A",
+	"P1 A Down",
+	"P1 A Left",
+	"P1 A Right",
+	"P1 A Up",
+	"P1 B",
+	"P1 C Down",
+	"P1 C Left",
+	"P1 C Right",
+	"P1 C Up",
+	"P1 DPad D",
+	"P1 DPad L",
+	"P1 DPad R",
+	"P1 DPad U",
+	"P1 L",
+	"P1 R",
+	"P1 Z"
+]
+
+hot_encodings = np.array([
+	[1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	[0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0],
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0],
+	[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1],
+])
+
+def one_hot_encode(index_list):
+	hot_stuff = np.zeros((17,))
+	for index in index_list:
+		hot_stuff += hot_encodings[index]
+
+	return hot_stuff
+
 
 def prep_data():
 	file = open("lua/data.txt", "r")
@@ -29,10 +78,16 @@ def prep_data():
 				continue
 
 			X = np.array(data[0].split("#"))
-			Y = data[1].split("#")
+			Y = np.array(data[1].split("#"))
+			Y_indices = []
+
+			for button in Y:
+				Y_indices.append(buttons.index(button))
+
+			one_hots = one_hot_encode(Y_indices)
 
 			train.append(X.astype(np.float))
-			labels.append(Y)
+			labels.append(one_hots)
 
 		line = file.readline().strip("\n")
 
@@ -41,24 +96,6 @@ def prep_data():
 
 	lp = open('training_data/labels.pickle', 'wb')
 	pickle.dump(labels, lp)
-
-def train():
-	train_data = pickle.load(open('training_data/train.pickle', 'br'))
-
-	train_labels = pickle.load(open('training_data/labels.pickle', 'br'))
-
-	model = initialize_model()
-
-	# data must be put into an numpy array
-    train_data = np.array(train_labels)
-	
-	# labels must be put into an numpy array
-    train_labels = np.array(train_labels)
-
-	model.fit(train_data, train_labels, epochs=1)
-
-	model.save()
-	
 
 def start_server():
 	# start server
@@ -89,18 +126,38 @@ def determine_action():
 			break
 
 def initialize_model():
+	
+
+	return model
+
+def train():
+	train_data = pickle.load(open('training_data/train.pickle', 'br'))
+
+	train_labels = pickle.load(open('training_data/labels.pickle', 'br'))
+
+	# data must be put into an numpy array
+	t = np.array(train_data)
+
+	# labels must be put into an numpy array
+	l = np.array(train_labels)
+
+	super_t = t.reshape(t.shape[0], t.shape[1], 1)
+
 	model = Sequential()
 
-	model.add(LSTM(10, input_shape=(6,), return_sequences=True))
+	model.add(LSTM(20, input_shape=(super_t.shape[1:]), activation='relu', return_sequences=True))
+	model.add(Dropout(0.2))
 
-	model.add(LSTM(20))
-	model.add(LSTM(20))
+	model.add(LSTM(20, activation='relu'))
+	model.add(Dropout(0.2))
 
 	model.add(Dense(17, activation="sigmoid"))
 
-	model.compile(loss='mean_squared_error', optimizer='adam', metrics=['accuracy'])
+	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
-	return model
+	model.fit(super_t, l, epochs=1)
+
+	model.save(str(time.time()) + ".h")
 
 def main():
 	parser = argparse.ArgumentParser()
