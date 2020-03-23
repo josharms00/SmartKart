@@ -8,8 +8,6 @@ import argparse
 import time
 mnist = tf.keras.datasets.mnist
 
-clientsocket = []
-
 buttons = [
 	"P1 A",
 	"P1 A Down",
@@ -110,14 +108,19 @@ def start_server():
 	(clientsocket, address) = server.accept()
 	print("Received client at %s:%d" % (address, port))
 
-def determine_action():
+	return clientsocket
+
+def determine_action(clientsocket):
 	while True:
 		try:
-			buttons = clientsocket.recv(240)
-			packet = buttons.decode()
-			data = packet.split(" ", 0)
+			state = clientsocket.recv(240)
+			packet = state.decode().strip("\n")
+	
+			data = packet.split(" ")
 
-			clientsocket.send(st.encode())
+			selected_buttons = predict(data) + "\n"
+
+			clientsocket.send(selected_buttons.encode())
 		except KeyboardInterrupt:
 			print("Exception occurred. Closing connection.")
 			print(traceback.print_exc())
@@ -125,10 +128,35 @@ def determine_action():
 			clientsocket.close()
 			break
 
-def initialize_model():
-	
+def get_model():
+	model = Sequential()
+
+	model.add(LSTM(20, input_shape=(super_t.shape[1:]), activation='relu', return_sequences=True))
+	model.add(Dropout(0.2))
+
+	model.add(LSTM(20, activation='relu'))
+	model.add(Dropout(0.2))
+
+	model.add(Dense(17, activation="sigmoid"))
+
+	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 
 	return model
+
+def predict(data):
+	model = tf.keras.models.load_model('1583692534.896509.h')
+
+	inputs = np.array(data).astype(np.float)
+
+	choices = model.predict(inputs.reshape(1, 6, 1))
+
+	selected_buttons = ""
+
+	for i in range(len(choices[0])):
+		if choices[0][i] > 0.5:
+			selected_buttons += str(i + 1) + " "
+
+	return selected_buttons
 
 def train():
 	train_data = pickle.load(open('training_data/train.pickle', 'br'))
@@ -143,17 +171,7 @@ def train():
 
 	super_t = t.reshape(t.shape[0], t.shape[1], 1)
 
-	model = Sequential()
-
-	model.add(LSTM(20, input_shape=(super_t.shape[1:]), activation='relu', return_sequences=True))
-	model.add(Dropout(0.2))
-
-	model.add(LSTM(20, activation='relu'))
-	model.add(Dropout(0.2))
-
-	model.add(Dense(17, activation="sigmoid"))
-
-	model.compile(loss='categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
+	model = get_model()
 
 	model.fit(super_t, l, epochs=1)
 
@@ -177,8 +195,8 @@ def main():
 	args = parser.parse_args()
 
 	if args.run: 
-		start_server()
-		determine_action()
+		clientsocket = start_server()
+		determine_action(clientsocket)
 
 	elif args.train:
 		if not args.pickled:

@@ -4,6 +4,8 @@ inputs = {}
 state = {}
 button_choice = {}
 
+local frame = 0
+
 buttons = {
 	"P1 A",
 	"P1 A Down",
@@ -73,19 +75,23 @@ function create_packet ()
 end
 
 while 1 do
-	refresh_position()
+	if frame % 4 == 0 then
+		refresh_position()
 
-	packet = create_packet()
+		packet = create_packet()
 
-	client.send(packet)
+		client.send(packet)
 
-	button_choice = str_split(client.receive(), "%s")
+		button_choice = str_split(client.receive(), "%s")
 
-	for i = 1, #button_choice do
-		inputs[buttons[tonumber(button_choice[i])]] = true
+		for i = 1, #button_choice do
+			inputs[buttons[tonumber(button_choice[i])]] = true
+		end
+
+		joypad.set(inputs)
 	end
 
-	joypad.set(inputs)
+	frame = frame + 1
 
 	emu.frameadvance()
 end
