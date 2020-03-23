@@ -75,7 +75,7 @@ function create_packet ()
 end
 
 while 1 do
-	if frame % 4 == 0 then
+	if frame % 10 == 0 then
 		refresh_position()
 
 		packet = create_packet()

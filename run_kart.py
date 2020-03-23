@@ -111,6 +111,8 @@ def start_server():
 	return clientsocket
 
 def determine_action(clientsocket):
+	model = tf.keras.models.load_model('1583692534.896509.h')
+
 	while True:
 		try:
 			state = clientsocket.recv(240)
@@ -118,7 +120,7 @@ def determine_action(clientsocket):
 	
 			data = packet.split(" ")
 
-			selected_buttons = predict(data) + "\n"
+			selected_buttons = predict(data, model) + "\n"
 
 			clientsocket.send(selected_buttons.encode())
 		except KeyboardInterrupt:
@@ -143,9 +145,7 @@ def get_model():
 
 	return model
 
-def predict(data):
-	model = tf.keras.models.load_model('1583692534.896509.h')
-
+def predict(data, model):
 	inputs = np.array(data).astype(np.float)
 
 	choices = model.predict(inputs.reshape(1, 6, 1))
